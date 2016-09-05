@@ -1,0 +1,303 @@
+
+<%=javascript_include_tag "DataTable/jquery" %>
+<%#=javascript_include_tag "DataTables/prototype" %>
+<script>jQuery.noConflict();</script>
+<%=javascript_include_tag "DataTable/jquery.dataTables.min" %>
+
+<%= stylesheet_link_tag "DataTable/demo_table_jui" %>
+<%= stylesheet_link_tag "DataTable/jquery.dataTables" %>
+
+<style>
+.dataTables_length {
+  text-align: left;
+}
+
+.centered{
+  border: 1px solid #eeeeee;
+  display: inline-block;
+  min-width: 60%;
+  padding: 20px;
+}
+
+.asset_search_div {
+  text-align: right;
+}
+
+.search-container {
+  padding-bottom: 50px !important;
+}
+
+#results tr:hover td {
+  background-color: lightblue;
+  color: white;
+  cursor: pointer;
+}
+
+.paginate_button current {
+  width: 100px;
+}
+
+.search-container input {
+  height: 40px;
+}
+
+#results td {
+  text-align: left;
+}
+
+#search_results_info {
+  text-align: left;
+}
+
+#attibutes-table {
+  width: 99%;
+}
+
+#attibutes-table td {
+  border-style: solid;
+  border-width: 1px 0px 0px 0px;
+  line-height: 45px;
+}
+
+</style>
+
+
+
+<table id="search_results" class="table table-striped table-bordered table-condensed">
+<thead>
+<tr id = 'table_head'>
+  <th id="th4" style="width:150px;">Date created</th>
+  <th id="th1" style="width:100px;">Receipt number</th>
+  <th id="th2" style="width:300px;">Transaction name</th>
+  <th id="th2" style="width:150px;text-align: right;">Total amount</th>
+  <th id="th2" style="width:150px;text-align: right;">Total paid amount</th>
+  <th id="th2" style="width:150px;text-align: right;">Total amount due</th>
+  <th id="th2" style="width:90px;">&nbsp;</th>
+</tr>
+</thead>
+<tbody id='results'>
+  <%(@merged_services || {}).each_with_index do |(clinic_service, transaction), i|
+    (transaction || {}).each do |date, data|
+    clinic_service_name = clinic_service
+    clinic_service_name = "#{clinic_service} (#{data[:service_name]})" if clinic_service == 'Medical'
+  %>
+  <tr>
+    <td><%=date.strftime('%d/%b/%Y')%></td>
+    <td><%=data[:receipt_number]%></td>
+    <td style="padding-left: 10px;"><%=clinic_service_name%></td>
+    <td style="text-align:right;padding-right:15px;" id="amount_cost_<%=(i+1)%>"><%=data[:total_cost].round(2)%></td>
+    <td style="text-align:right;padding-right:15px;" id="amount_paid_<%=(i+1)%>"><%=data[:amount_paid].round(2) rescue 0%></td>
+    <td style="text-align:right;padding-right:15px;" id="amount_due_<%=(i+1)%>"><%=data[:amount_due].round(2) rescue 0%></td>
+    <td style="width: 70px;">
+      <table style="width: 100%">
+        <tr>
+          <td><a class="btn-success btn" href="javascript:makePayment(<%=(i+1)%>,'<%=clinic_service%>',<%=data[:total_cost].round(2)%>,<%=data[:visit_id]%>);">Make payment</a><td>
+          <td><a class="btn-info btn" href="javascript:viewDetails(<%=data[:visit_id]%>, '<%=clinic_service%>');">View details</a><td>
+          <td><a class="btn-primary btn" href="#">Print</a><td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <%end
+  end%>
+</tbody>
+</table>
+
+
+
+<script> 
+
+var dataTable = null;
+
+function dataT(){          
+  dataTable = jQuery('#search_results').dataTable();                                                  
+}
+
+                                                                     
+dataT();                   
+
+function cancelTransaction(code) {
+  bootbox.confirm("Are you sure you want to remove?", function(result) {
+    if (result) 
+      voidPrescription(code);
+    
+
+  });   
+}
+
+function makePayment(row_number, name, service_cost,visit_id) {
+  bootbox.confirm("<b>Pay for: " + name + "</b>", function(result) {
+    if (result) {
+      pay(row_number, visit_id, name, service_cost);
+    }
+
+  });  
+  
+  buildPaymentTable(name, service_cost, row_number); 
+}
+
+function buildPaymentTable(name, service_cost, row_number) {
+  table = document.createElement('table');
+  table.setAttribute('id','attibutes-table');
+  table.setAttribute('style','width: 100%;');
+  tr = document.createElement('tr');
+  td = document.createElement('td');
+  td.setAttribute('colspan',2);
+  hr = document.createElement('hr');
+  td.appendChild(hr);
+  tr.appendChild(td);
+  table.appendChild(tr);
+
+  tr = document.createElement('tr');
+  td = document.createElement('td');
+  td.innerHTML = 'Service cost:';
+  tr.appendChild(td);
+  td = document.createElement('td');
+  td.innerHTML = service_cost;
+  tr.appendChild(td);
+  table.appendChild(tr);
+  
+  tr = document.createElement('tr');
+  td = document.createElement('td');
+  td.innerHTML = 'Amount paid:';
+  tr.appendChild(td);
+  td = document.createElement('td');
+  td.innerHTML = document.getElementById('amount_paid_'+row_number).innerHTML;
+  tr.appendChild(td);
+  table.appendChild(tr);
+
+  tr = document.createElement('tr');
+  td = document.createElement('td');
+  td.innerHTML = 'Amount due:';
+  tr.appendChild(td);
+  td = document.createElement('td');
+  td.innerHTML = document.getElementById('amount_due_'+row_number).innerHTML;
+  tr.appendChild(td);
+  table.appendChild(tr);
+
+
+
+  tr = document.createElement('tr');
+  td = document.createElement('td');
+  td.innerHTML = 'Pay:';
+  tr.appendChild(td);
+
+  td = document.createElement('td');
+  e = document.createElement('input');
+  e.setAttribute('type','number');
+  e.setAttribute('style','width: 100%;heigh: 30px;');
+  e.setAttribute('id','paid-amount');
+  td.appendChild(e);
+  tr.appendChild(td);
+
+  table.appendChild(tr);
+
+  
+
+  document.getElementsByClassName('bootbox-body')[0].appendChild(table);
+  validInput();
+
+}
+
+function validInput() {
+
+document.getElementById('paid-amount').addEventListener('keydown', function(e) {
+    var key   = e.keyCode ? e.keyCode : e.which;
+
+    if (!( [8, 9, 13, 27, 46, 110, 190].indexOf(key) !== -1 ||
+         (key == 65 && ( e.ctrlKey || e.metaKey  ) ) || 
+         (key >= 35 && key <= 40) ||
+         (key >= 48 && key <= 57 && !(e.shiftKey || e.altKey)) ||
+         (key >= 96 && key <= 105)
+       )) e.preventDefault();
+});
+
+}
+
+function viewDetails(visit_id, clinic_service_name) {
+                                                                              
+  if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+    xmlhttp=new XMLHttpRequest();                                             
+  }else{// code for IE6, IE5                                                  
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+  }                                                                           
+  xmlhttp.onreadystatechange=function() {                                     
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+      var results = xmlhttp.responseText;                                     
+      if(results == 'undefined' || results == '' || results == '"not validate"') {                           
+        return;                                                               
+      }else{                                                                  
+        bootbox.alert("<b>Details for: " + clinic_service_name + "</b>", function() {});
+        buildServiceDetailsTable(results);
+      }                                                                       
+    }                                                                         
+  }                                                                           
+  xmlhttp.open("GET","/transaction_details?visit_id=" + visit_id + "&clinic_section=" + clinic_service_name,true);           
+  xmlhttp.send();                                                             
+}
+
+
+function buildServiceDetailsTable(data) {
+  table = document.createElement('table');
+  table.setAttribute('id','attibutes-table');
+  table.setAttribute('style','width: 100%;');
+  tr = document.createElement('tr');
+  td = document.createElement('td');
+  td.setAttribute('colspan',2);
+  hr = document.createElement('hr');
+  td.appendChild(hr);
+  tr.appendChild(td);
+  table.appendChild(tr);
+
+  data = JSON.parse(data);
+  for (var i = 0; i < data.length; i++) {
+    tr = document.createElement('tr');
+    td = document.createElement('td');
+    td.innerHTML = data[i]['service_name'];
+    tr.appendChild(td);
+    
+    td = document.createElement('td');
+    td.innerHTML = data[i]['cost'];
+    tr.appendChild(td);
+
+    table.appendChild(tr);
+  }
+
+
+  document.getElementsByClassName('bootbox-body')[0].appendChild(table);
+
+}
+
+function pay(row_number, visit_id, clinic_section, total_cost) {
+  paid_amount = document.getElementById('paid-amount').value;
+  acc_num = '<%= @account.account_number.to_s rescue nil %>';
+
+  if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+    xmlhttp=new XMLHttpRequest();                                             
+  }else{// code for IE6, IE5                                                  
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+  }                                                                           
+  xmlhttp.onreadystatechange=function() {                                     
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+      var results = xmlhttp.responseText;                                     
+      if(results == 'undefined' || results == '' || results == '"not validate"') {                           
+        return;                                                               
+      }else{                                                                  
+        updateRow(JSON.parse(results), row_number);
+        //data = JSON.parse(data);
+      }                                                                       
+    }                                                                         
+  }                                                                           
+  xmlhttp.open("GET","/pay_for_transaction?visit_id=" + visit_id +
+     "&clinic_section=" + clinic_section + "&paid_amount=" +
+     paid_amount + "&acc_num=" + acc_num + "&total_cost=" + total_cost,true);           
+  xmlhttp.send();                                                             
+
+
+}
+
+function updateRow(data, row_number) {
+  document.getElementById("amount_paid_"+row_number).innerHTML = data[1];
+  document.getElementById("amount_due_"+row_number).innerHTML = (data[0] - data[1]).round(2);
+}
+</script>

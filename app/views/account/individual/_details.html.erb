@@ -1,0 +1,351 @@
+<style>
+/*----- Tabs -----*/
+.tabs {
+  width: 94%;
+  display:inline-block;
+  margin: 25px 46px;
+}
+ 
+/*----- Tab Links -----*/
+/* Clearfix */
+.tab-links:after {
+  display:block;
+  clear:both;
+  content:'';
+}
+
+.tab-links li {
+  margin:0px 5px;
+  float:left;
+  list-style:none;
+}
+
+.tab-links a {
+  padding:9px 15px;
+  display:inline-block;
+  border-radius:3px 3px 0px 0px;
+  background:#7FB5DA;
+  font-size:16px;
+  font-weight:600;
+  color:#4c4c4c;
+  transition:all linear 0.15s;
+}
+
+.tab-links a:hover {
+  background:#a7cce5;
+  text-decoration:none;
+}
+
+li.active a, li.active a:hover {
+  background:#fff;
+  color:#4c4c4c;
+}
+
+/*----- Content of Tabs -----*/
+.tab-content {
+  padding:15px;
+  border-radius:3px;
+  box-shadow:-1px -1px 0px 2px rgba(0, 0, 0, 0.15);
+  background:#fff;
+}
+
+.tab {
+    display:none;
+}
+
+.tab.active {
+    display:block;
+}
+
+/* ........ allergy .................. */
+.allergy_td {
+  text-align: left;
+  padding-left: 5px;
+}
+
+.right_t {
+  float: right;
+  width: 40%;
+}
+
+.left_t {
+  float: left;
+  width: 40%;
+}
+
+.textarea-div {
+  text-align: left;
+  margin-top: 540px;
+}
+
+.textarea-div textarea {
+  height: 75px;
+  width: 95%;
+}
+
+.severity {
+  width: 250px;
+}
+
+.severity td {
+  text-align: left;
+}
+
+.severity_radio {
+  width: 20px;
+}
+
+/* ........ allergy ends .................. */
+</style>
+
+<div class="tabs">
+  <ul class="tab-links">
+    <li class="active"><a href="#tab1">Account details</a></li>
+    <li><a href="#tab2">Billing history</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div id="tab1" class="tab active">
+      <%= render :partial => 'account/individual/account' %>
+    </div>
+ 
+    <div id="tab2" class="tab">
+      <%= render :partial => 'account/individual/billing_history' %>
+    </div>
+ 
+  </div>
+
+
+</div>
+
+
+<script>
+
+function cancelTransaction() {
+  bootbox.confirm("Are you sure you want to cancel?", function(result) {
+    if (result) 
+      document.location = "/patient_dashboard/<%=params[:patient_id]%>/<%=params[:visit_id]%>";
+
+  }); 
+}
+
+
+var currentAttrValue = jQuery(this).attr('href');
+
+jQuery(document).ready(function() {
+    jQuery('.tabs .tab-links a').on('click', function(e)  {
+        var currentAttrValue = jQuery(this).attr('href');
+ 
+        // Show/Hide Tabs
+        jQuery('.tabs ' + currentAttrValue).show().siblings().hide();
+ 
+        // Change/remove current tab to active
+        jQuery(this).parent('li').addClass('active').siblings().removeClass('active');
+ 
+        e.preventDefault();
+    });
+});
+
+
+jQuery('.tabs ' + currentAttrValue).show().siblings().hide();
+jQuery(this).parent('li').addClass('active').siblings().removeClass('active');
+//e.preventDefault();
+
+
+
+function saveAllergy() {
+
+  form = document.getElementById('allergies-form');
+  
+  <%(@drug_allergies || []).each_with_index do |allergy, i|%>
+    drug_radio_allergy_name = document.getElementById("drug_radio_<%=i%>");
+    if (drug_radio_allergy_name.checked) {
+      drug_allergy_name = document.getElementById("drug_allergy_name_<%=i%>").innerHTML;
+      e = document.createElement('input');;
+      e.setAttribute('type','hidden');
+      e.setAttribute('name','drug_allergy');
+      e.setAttribute('value',drug_allergy_name);
+      form.appendChild(e);
+    }
+  <%end%>
+  
+  var severity = 3;
+  for(var i = 1; i <= severity; i++) { 
+    severity_radio = document.getElementById('drug_severity_' + i)
+    if(severity_radio.checked){
+      e = document.createElement('input');;
+      e.setAttribute('type','hidden');
+      e.setAttribute('name','drug_allergies_severity');
+      if(i == 1){
+        svy = 'Mild';
+      }else if(i == 2){
+        svy = 'Moderate';
+      }else{
+        svy = 'Severe';
+      }
+      e.setAttribute('value',svy);
+      form.appendChild(e);
+    }
+  }  
+  
+  <%(@allergy_reactions || []).each_with_index do |allergy, i|%>
+    drug_allergy_reaction = document.getElementById("drug_allergy_reactions_<%=(i+1)%>");
+    if (drug_allergy_reaction.checked) {
+      drug_allergy_reaction_name = document.getElementById("drug_data_<%=(i+1)%>").innerHTML;
+      e = document.createElement('input');;
+      e.setAttribute('type','hidden');
+      e.setAttribute('name','drug_allergy_reactions[]');
+      e.setAttribute('value',drug_allergy_reaction_name);
+      form.appendChild(e);
+    }
+  <%end%>
+
+
+
+
+
+
+
+
+
+<%(@food_allergies || []).each_with_index do |allergy, i|%>
+    food_radio_allergy_name = document.getElementById("food_radio_<%=i%>");
+    if (food_radio_allergy_name.checked) {
+      food_allergy_name = document.getElementById("food_allergy_name_<%=i%>").innerHTML;
+      e = document.createElement('input');;
+      e.setAttribute('type','hidden');
+      e.setAttribute('name','food_allergy');
+      e.setAttribute('value',food_allergy_name);
+      form.appendChild(e);
+    }
+  <%end%>
+  
+  var severity = 3;
+  for(var i = 1; i <= severity; i++) { 
+    severity_radio = document.getElementById('food_severity_' + i)
+    if(severity_radio.checked){
+      e = document.createElement('input');
+      e.setAttribute('type','hidden');
+      e.setAttribute('name','food_allergies_severity');
+      if(i == 1){
+        svy = 'Mild';
+      }else if(i == 2){
+        svy = 'Moderate';
+      }else{
+        svy = 'Severe';
+      }
+      e.setAttribute('value',svy);
+      form.appendChild(e);
+    }
+  }  
+  
+  <%(@allergy_reactions || []).each_with_index do |allergy, i|%>
+    food_allergy_reaction = document.getElementById("food_allergy_reactions_<%=(i+1)%>");
+    if (food_allergy_reaction.checked) {
+      food_allergy_reaction_name = document.getElementById("food_data_<%=(i+1)%>").innerHTML;
+      e = document.createElement('input');
+      e.setAttribute('type','hidden');
+      e.setAttribute('name','food_allergy_reactions[]');
+      e.setAttribute('value',food_allergy_reaction_name);
+      form.appendChild(e);
+    }
+  <%end%>
+
+
+
+
+
+
+
+
+<%(@environmental_allergies || []).each_with_index do |allergy, i|%>
+    environmental_radio_allergy = document.getElementById("environmental_radio_<%=i%>");
+    if (environmental_radio_allergy.checked) {
+      environmental_allergy_name = document.getElementById("environmental_allergy_name_<%=i%>").innerHTML;
+      e = document.createElement('input');
+      e.setAttribute('type','hidden');
+      e.setAttribute('name','environmental_allergy');
+      e.setAttribute('value',environmental_allergy_name);
+      form.appendChild(e);
+    }
+  <%end%>
+  
+  var severity = 3;
+  for(var i = 1; i <= severity; i++) { 
+    severity_radio = document.getElementById('environmental_severity_' + i);
+    if(severity_radio.checked){
+      e = document.createElement('input');
+      e.setAttribute('type','hidden');
+      e.setAttribute('name','environmental_allergies_severity');
+      if(i == 1){
+        svy = 'Mild';
+      }else if(i == 2){
+        svy = 'Moderate';
+      }else{
+        svy = 'Severe';
+      }
+      e.setAttribute('value',svy);
+      form.appendChild(e);
+    }
+  }  
+
+
+  <%(@allergy_reactions || []).each_with_index do |allergy, i|%>
+    environmental_allergy_reaction = document.getElementById("environmental_allergy_reactions_<%=(i+1)%>");
+    if (environmental_allergy_reaction.checked) {
+      environmental_allergy_reaction_name = document.getElementById("environmental_data_<%=(i+1)%>").innerHTML;
+      e = document.createElement('input');
+      e.setAttribute('type','hidden');
+      e.setAttribute('name','environmental_allergy_reactions[]');
+      e.setAttribute('value',environmental_allergy_reaction_name);
+      form.appendChild(e);
+    }
+  <%end%>
+
+
+  for(var i = 1; i <= 3; i++){
+    comment = document.getElementById("comment_" + i).value;
+    e = document.createElement('input');
+    e.setAttribute('type','hidden');
+    e.setAttribute('name','comment_'+i);
+    e.setAttribute('value',comment);
+    form.appendChild(e);
+  }
+
+
+
+  continue_submit = false;
+  try {
+    if (document.getElementsByName('drug_allergy')[0].value.length > 0) {
+      continue_submit = true;
+    }
+  }catch(e) { }
+
+
+  try {
+    if (document.getElementsByName('food_allergy')[0].value.length > 0) {
+      continue_submit = true;
+    }
+  }catch(e) { }
+
+
+  try {
+    if (document.getElementsByName('environmental_allergy')[0].value.length > 0) {
+      continue_submit = true;
+    }
+  }catch(e) { }
+
+  if(continue_submit == false) {
+    notifyPopUp('Select one/more allergies before saving');
+    return;
+  }
+
+
+  form.submit();
+}
+
+function notifyPopUp(msg) {
+  bootbox.alert(msg, function() {});
+}
+
+</script>

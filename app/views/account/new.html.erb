@@ -1,2 +1,231 @@
-<h1>Account#new</h1>
-<p>Find me in app/views/account/new.html.erb</p>
+
+<style>
+.account-details {
+  width: 99%;
+}
+
+.account-details tr {
+  line-height: 50px;
+}
+
+.new_account {
+  float: right;
+  margin-top: 10px;
+}
+
+.account-details-data {
+  border-style: solid;
+  border-width: 1px 0px 0px 0px;
+}
+
+.account-details th {
+  width: 30%;
+}
+
+.cancel_edit {
+  float: left;
+  margin-top: 10px;
+}
+
+.input-text {
+  width: 98%;
+  line-height: 30px;
+}
+
+.input-select {
+  height: 30px;
+  width: 100%;
+}
+
+#account-attributes {
+  padding: 0px 100px 0px 100px;
+}
+
+</style>
+
+<div style="text-align: left; padding: 0px 0px 15px 100px; color: black;">
+  <h3>Create/Update patient's billing account</h3>
+</div>
+
+
+
+<%= form_tag("/create", id: "account-attributes", method: 'post', enctype: 'multipart/form-data') do %>
+
+<table class='account-details'>
+
+  <tr>
+    <th>Member ID:</th>
+    <td class="account-details-data">
+      <input readonly="readonly" type="text" style="width: 40%;" id="account_number" 
+      name="account_number" value="<%=(@account.account_number.to_s rescue nil)%>" class="input-text" />
+      <%if @account.blank?%>
+        <input type="button" style="float: right; width: 20%; margin: 5px 10px;" 
+        onclick="javascript:getAccountNumber();" value="Generate #" class="btn btn-info input-text" />
+      <%end%>
+    </td>
+  </tr>
+
+  <tr>
+    <th>First name:</th>
+    <td class="account-details-data">
+      <input readonly="readonly" type="text" name="first_name" value="<%=@patient_obj.given_name%>" class="input-text" />
+    </td>
+  </tr>
+
+  <tr>
+    <th>Last name:</th>
+    <td class="account-details-data">
+      <input readonly="readonly" type="text" name="last_name" value="<%=@patient_obj.family_name%>" class="input-text" />
+    </td>
+  </tr>
+
+
+  <tr style="border-width: 1px 0px 0px 0px; border-style: solid;">
+    <td colspan='2'>
+      <a class='btn btn-danger cancel_edit' href="javascript:cancelTransaction();">Cancel</a>
+      <%if @account.blank?%>
+        <a class='btn btn-success new_account' href="javascript:submitDetails();">Update details</a>
+      <%else%>
+        <a class='btn btn-success new_account' href="javascript:submitDetails();">Add insurance cover</a>
+      <%end%>
+    </td>
+  </tr>
+
+
+
+</table>
+
+<input type="hidden" name="patient_id" value="<%=params[:patient_id]%>" />
+
+<%end%>
+
+<%#=stylesheet_link_tag "datepicker/datepicker" %>
+<%#=javascript_include_tag "datepicker/bootstrap-datepicker" %>
+
+<script>
+
+function cancelTransaction() {
+  bootbox.confirm("Are you sure you want to cancel?", function(result) {
+    if (result) 
+      document.location = "/account/<%=@patient_obj.patient_id%>";
+
+  }); 
+}
+
+function submitDetails() {
+  document.getElementById('account-attributes').submit();
+}
+
+function activateDates() {
+  var FromEndDate = new Date();
+
+  $( document ).ready(function() {
+    $('#dp0').datepicker({format: 'dd-mm-yyyy', 
+      onRender:function(date){
+        return date.valueOf() > FromEndDate.valueOf()?'disabled':'';
+      }
+    });
+  });
+}
+
+//activateDates();
+
+function activateDatePeriods() {
+ 
+   var nowTemp = new Date();
+    var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
+     
+    var checkin = $('#dp1').datepicker({
+      onRender: function(date) {
+        return date.valueOf() < now.valueOf() ? 'disabled' : '';
+      }
+    }).on('changeDate', function(ev) {
+      if (ev.date.valueOf() > checkout.date.valueOf()) {
+        var newDate = new Date(ev.date)
+        newDate.setDate(newDate.getDate() + 1);
+        checkout.setValue(newDate);
+      }
+      checkin.hide();
+      $('#dp2')[0].focus();
+    }).data('datepicker');
+    var checkout = $('#dp2').datepicker({
+      onRender: function(date) {
+        return date.valueOf() <= checkin.date.valueOf() ? 'disabled' : '';
+      }
+    }).on('changeDate', function(ev) {
+      checkout.hide();
+    }).data('datepicker');
+
+}
+
+//activateDatePeriods();
+
+function fetchPlans(e) {
+  if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+    xmlhttp=new XMLHttpRequest();                                             
+  }else{// code for IE6, IE5                                                  
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+  }                                                                           
+  xmlhttp.onreadystatechange=function() {                                     
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+      var results = xmlhttp.responseText;                                     
+      if(results == 'undefined' || results == '' || results == '"not validate"') {                           
+        return;                                                               
+      }else{                                                                  
+        clearPlans();
+        addOptions(results);                                                           
+      }                                                                       
+    }                                                                         
+  } 
+                                                                
+  xmlhttp.open("GET","/fetch_insurance_plans/"+e.value,true);           
+  xmlhttp.send()
+}
+
+function clearPlans() {
+  select = document.getElementById('insurance-plan');
+  options = select.getElementsByTagName('option');
+  if (options.length > 0) 
+    select.options.length = 0; 
+
+}
+
+function addOptions(data) {
+  select = document.getElementById('insurance-plan');
+  data = JSON.parse(data);
+
+  opt = document.createElement('option');
+  opt.setAttribute('value', '');
+  opt.innerHTML =  '';
+  select.appendChild(opt);
+
+  for(var i = 0; i < data.length; i++){
+    opt = document.createElement('option');
+    opt.setAttribute('value', data[i][0]);
+    opt.innerHTML =  data[i][1];
+    select.appendChild(opt);
+  }
+}
+
+function getAccountNumber() {
+  if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+    xmlhttp=new XMLHttpRequest();                                             
+  }else{// code for IE6, IE5                                                  
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+  }                                                                           
+  xmlhttp.onreadystatechange=function() {                                     
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+      var results = xmlhttp.responseText;                                     
+      if(results == 'undefined' || results == '' || results == '"not validate"') {                           
+        return;                                                               
+      }else{                                                                  
+        document.getElementById('account_number').value = results;
+      }                                                                       
+    }                                                                         
+  } 
+                                                                
+  xmlhttp.open("GET","/fetch_account_number", true);           
+  xmlhttp.send()
+}
+
+</script>

@@ -8,6 +8,7 @@ Rails.application.config.assets.precompile += %w( bootstrap-tree/* )
 Rails.application.config.assets.precompile += %w( bootstrap-extras/* )
 Rails.application.config.assets.precompile += %w( datepicker/* )
 Rails.application.config.assets.precompile += %w( footer.sticky.css )
+Rails.application.config.assets.precompile += %w( jquery.min.js )
 
 # Add additional assets to the asset load path
 # Rails.application.config.assets.paths << Emoji.images_path

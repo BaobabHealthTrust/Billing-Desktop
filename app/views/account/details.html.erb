@@ -1,0 +1,159 @@
+
+<%=javascript_include_tag "DataTable/jquery" %>                          
+<%#=javascript_include_tag "DataTable/prototype" %>                          
+<script>jQuery.noConflict();</script>
+<%=javascript_include_tag "DataTable/jquery.dataTables.min" %>
+
+<%#= stylesheet_link_tag "DataTables/demo_table" %>                                         
+<%= stylesheet_link_tag "DataTable/demo_table_jui" %>                                     
+<%= stylesheet_link_tag "DataTable/jquery.dataTables" %>                                     
+<%#= stylesheet_link_tag "demo_page" %>
+
+<style>
+.dataTables_length {
+  text-align: left;
+}
+
+.centered{
+  border: 1px solid #eeeeee;
+  display: inline-block;
+  min-width: 60%;
+  padding: 20px;
+}
+
+.asset_search_div {
+  text-align: right;
+}
+
+.search-container {
+  padding-bottom: 50px !important;
+}
+
+#results tr:hover td {
+  background-color: lightblue;
+  color: white;
+  cursor: pointer;
+}
+
+.paginate_button current {
+  width: 100px;
+}
+
+.search-container input {
+  height: 40px;
+}
+
+#results td {
+  text-align: left;
+}
+
+#search_results_info {
+  text-align: left;
+}
+
+</style>
+
+<script>
+
+  var dataTable = null;
+
+  function dataT(){          
+    dataTable = jQuery('#search_results').dataTable();                                                  
+  }
+
+</script>
+
+
+<div class="search-container">
+
+<div class="asset_search_div" style="padding-bottom: 50px;">
+    <!--button class="btn btn-info" style="float: left;" onclick="javascript:location='/billing'" />
+      <span class="glyphicon glyphicon-step-backward"></span> Back to accounts</button-->
+  </div>
+
+<div class="patient-header">
+  <div class="demographics">
+    <h1 class="name">
+      <span class="patient-name"><%=@patient_obj.given_name%><em>Given</em></span>&nbsp;
+      <span class="patient-name"><%=@patient_obj.family_name%><em>Family Name</em></span>
+      <span class="gender-age"><span> (<%=@patient_obj.gender%>)&nbsp;
+      </span><span> <%=@patient_obj.age%> year(s) 
+      (<%=@patient_obj.birthdate.to_date.strftime('%d.%b.%Y') rescue 'Unknown birthdate'%>) </span>
+    </h1>
+  </div>
+</div>
+
+
+<!--h2 style="color: #009384; font-size: 1.3em;text-align: left;">Patient's billing history:&nbsp;
+  <%if @account.blank?%>
+    <button class='btn btn-success new_account'>Create account</button>
+  <%else%>
+    <button class='btn btn-primary new_account'>Edit account</button>
+  <%end%>
+</h2-->
+
+    <!-- start -->
+      <section id='modals'>
+        <%= render :partial => 'account/individual/details' %>
+      </section> 
+    <!-- end -->
+
+
+</div>
+
+<style>
+
+#table_head th {
+  background-color:#e6e6e6;
+  color: #555;
+  font-weight: normal;
+  font-family: "OpenSansBold";
+  text-align: left;
+  word-break: normal;
+
+}
+
+.patient-header {
+    background: #f9f9f9 none repeat scroll 0 0;
+    border-bottom: 2px solid #eee;
+    margin: 5px 50px 0px 50px;
+    min-height: 60px;
+    overflow: hidden;
+    padding: 5px 10px;
+    position: relative;
+    z-index: 0;
+}
+
+.patient-header .demographics {
+    display: inline-block;
+    float: left;
+    position: relative;
+    vertical-align: top;
+}
+
+.patient-header .demographics h1 span {
+    display: inline-block;
+}
+.patient-name {
+    font-size: 25px;
+}
+
+.patient-header .demographics h1 span em {
+    border-top: 1px solid #ddd;
+    color: #888;
+    display: flex;
+    font-size: 0.4em;
+}
+em {
+    font-family: "OpenSansItalic";
+    font-style: normal;
+}
+
+.patient-header .demographics h1 span {
+    display: inline-block;
+}
+
+.name .gender-age {
+  font-size: 15px;
+}
+</style>

@@ -1,9 +1,12 @@
 Rails.application.routes.draw do
 
   ################### account ##############################
-  get 'account/new'
-  post 'account/new'
+  get 'account_new/:patient_id' => 'account#new'
+  post '/create' => 'account#create'
   get '/accounts' => 'account#list'
+  get '/clients' => 'account#clients'
+  get 'account/:patient_id' => 'account#details'
+  get '/fetch_account_number' => 'account#fetch_account_number'
   ##########################################################
 
   ################### insurance_cover ##############################
