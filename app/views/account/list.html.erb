@@ -1,0 +1,190 @@
+
+<%=javascript_include_tag "DataTable/jquery" %>                          
+<%#=javascript_include_tag "DataTable/prototype" %>                          
+<script>jQuery.noConflict();</script>
+<%=javascript_include_tag "DataTable/jquery.dataTables.min" %>
+
+<%#= stylesheet_link_tag "DataTable/demo_table" %>                                         
+<%= stylesheet_link_tag "DataTable/demo_table_jui" %>                                     
+<%= stylesheet_link_tag "DataTable/jquery.dataTables" %>                                     
+<%#= stylesheet_link_tag "demo_page" %>
+
+<style>
+.dataTables_length {
+  text-align: left;
+}
+
+.centered{
+  border: 1px solid #eeeeee;
+  display: inline-block;
+  min-width: 60%;
+  padding: 20px;
+}
+
+.asset_search_div {
+  text-align: right;
+}
+
+.search-container {
+  padding-bottom: 50px !important;
+}
+
+#results tr:hover td {
+  background-color: lightblue;
+  color: white;
+  cursor: pointer;
+}
+
+.paginate_button current {
+  width: 100px;
+}
+
+.search-container input {
+  /*height: 40px;*/
+}
+
+#results td {
+  text-align: left;
+}
+
+#search_results_info {
+  text-align: left;
+}
+
+</style>
+
+<script>
+
+  var dataTable = null;
+
+  function addRows(data) {
+    patients = JSON.parse(data);
+    counter = 0;
+    for (var i = 0; i < patients.length; i++) {
+      first_name = patients[i]['given_name'];
+      last_name = patients[i]['family_name'];
+      gender = patients[i]["gender"];
+      birthdate = patients[i]["birthdate"];
+      age = patients[i]["age"];
+      patient_id = patients[i]["patient_id"];
+      account_number = patients[i]["account_number"];
+      account_type = patients[i]["account_type"];
+      relationship = patients[i]["account_relationship"];
+      cover_period_end_date = patients[i]["cover_period_end_date"];
+      dataTable.api().row.add([account_number,account_type,relationship,cover_period_end_date, first_name, last_name, gender, birthdate, age]).draw();
+
+      var newRow = dataTable.fnSettings().aoData[counter].nTr;
+      url = "showPatDashboard(" + patient_id + ")";
+      newRow.setAttribute('onclick',url);
+      counter++
+    }
+  }
+
+
+  function dataT(){          
+    dataTable = jQuery('#search_results').dataTable();                                                  
+  }
+
+  function findPatients() {                                                       
+    var search_str = document.getElementById('search_words').value;               
+                                                                                
+    if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+        xmlhttp=new XMLHttpRequest();                                             
+      }else{// code for IE6, IE5                                                  
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+      }                                                                           
+      xmlhttp.onreadystatechange=function() {                                     
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+          var results = xmlhttp.responseText;                                     
+          if(results == 'undefined' || results == '' || results == '"not validate"') {                           
+            return;                                                               
+          }else{                                                                  
+            dataTable.fnClearTable();
+            addRows(results);                                                           
+          }                                                                       
+        }                                                                         
+      }                                                                           
+      xmlhttp.open("GET","/clients_live_search?search_str="+search_str,true);           
+      xmlhttp.send();                                                             
+    } 
+ 
+    
+</script>
+
+
+<div class="search-container">
+
+    <!-- start -->
+
+<div class="page-header">
+  <h4 style="text-align:left;width: 260px; color: #009384;
+      font-size: 1.2em; padding-bottom: 20px;">Billing:&nbsp;active accounts</h4>
+  
+  <div class="asset_search_div">
+    <button class="btn btn-info" style="float: left;" onclick="javascript:location='#'">
+      <span class="glyphicon glyphicon-step-backward"></span> Add new account</button>
+
+    <input type="text" name="search" onkeyup = "javascript:findPatients()"
+      placeholder = "Client(s) search" id="search_words" />
+  </div>
+
+</div>
+<section id='modals'>                                              
+  <table id="search_results" class="table table-striped table-bordered table-condensed">
+  <thead>                                                                       
+  <tr id = 'table_head'>                                                        
+    <th id="th1" style="width:300px;">Account number</th>                           
+    <th id="th1" style="width:100px;">Account type</th>                           
+    <th id="th8" style="width:250px;">Relationship</th>                                  
+    <th id="th8" style="width:150px;">Coverage end date</th>                                  
+    <th id="th3" style="width:200px;">First name</th>                           
+    <th id="th4" style="width:200px;">Last name</th>                            
+    <th id="th5" style="width:200px;">Gender</th>                          
+    <th id="th5" style="width:200px;">Birthdate</th>                          
+    <th id="th8" style="width:150px;">Age</th>                                  
+  </tr>                                                                         
+  </thead>                                                                      
+  <tbody id='results'>                                                          
+    <%(@accounts || []).each do |account| 
+      patient = PatientService.get_patient(account.patient_id)
+    %>                                    
+    <tr onclick="showPatDashboard(<%=account.patient_id%>);">                                                                        
+      <td><%=account.account_number%></td>                                    
+      <td><%=account.health_insurance_plan.health_insurance.name rescue nil%></td>                                    
+      <td><%=account.relationship%></td>                                    
+      <td><%=account.cover_period_end_date.strftime('%d-%b-%Y')%></td>                                    
+      <td><%=patient.given_name%></td>                                            
+      <td><%=patient.family_name%></td>                                    
+      <td><%=patient.gender%></td>                                    
+      <td><%=patient.birthdate.to_date.strftime('%d-%b-%Y') rescue 'N/A'%></td>                                    
+      <td><%=patient.age%></td>                                    
+    </tr>                                                                       
+    <%end%>                                                                     
+  </tbody>                                                                      
+  </table>
+</section> 
+
+<script>                                                                        
+  dataT();                   
+  
+  function showPatDashboard(patient_id) {
+    document.location = '/account/'+patient_id;
+  }                                                   
+</script>
+    <!-- end -->
+
+
+</div>
+
+<style>
+#table_head th {
+  background-color:#e6e6e6;
+  color: #555;
+  font-weight: normal;
+  font-family: "OpenSansBold";
+  text-align: left;
+  word-break: normal;
+
+}
+
+</style>

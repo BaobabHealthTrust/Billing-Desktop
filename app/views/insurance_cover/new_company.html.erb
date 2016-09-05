@@ -1,0 +1,128 @@
+
+<style>
+.account-details {
+  width: 99%;
+}
+
+.account-details tr {
+  line-height: 50px;
+}
+
+.new_account {
+  float: right;
+  margin-top: 10px;
+}
+
+.account-details-data {
+  border-style: solid;
+  border-width: 1px 0px 0px 0px;
+}
+
+.account-details th {
+  width: 20%;
+}
+
+.cancel_edit {
+  float: left;
+  margin-top: 10px;
+}
+
+.input-text {
+  width: 100%;
+  line-height: 30px;
+}
+
+.input-select {
+  height: 30px;
+  width: 100%;
+}
+
+#account-attributes {
+  padding: 0px 100px 0px 100px;
+}
+
+</style>
+
+<h3 style="text-align: left; padding-left: 100px;">Insurance</h3>
+
+<br />
+<%= form_tag("/update_insurance", id: "account-attributes", method: 'post', enctype: 'multipart/form-data') do %>
+
+<table class='account-details'>
+
+  <tr>
+    <th>Name:</th>
+    <td class="account-details-data">
+      <input type="text" id="insurance-name" name="name" value="<%=@insurance.name rescue nil%>" class="input-text" />
+    </td>
+  </tr>
+
+  <tr>
+    <th>Description:</th>
+    <td class="account-details-data">
+      <textarea id="insurance-description" name="description" class="input-text"><%=(@insurance.description.to_s rescue nil)%></textarea>
+    </td>
+  </tr>
+
+  <tr style="border-width: 1px 0px 0px 0px; border-style: solid;">
+    <td colspan='2'>
+      <a class='btn btn-danger cancel_edit' href="javascript:cancelTransaction();">Cancel</a>
+      <a class='btn btn-success new_account' href="javascript:submitDetails();">Update</a>
+    </td>
+  </tr>
+
+
+
+</table>
+
+<input type="hidden" name="insurance_id" value="<%=params[:insurance_id]%>" />
+
+<%end%>
+
+<%=stylesheet_link_tag "datepicker/datepicker" %>
+<%=javascript_include_tag "datepicker/bootstrap-datepicker" %>
+
+<script>
+
+function cancelTransaction() {
+  bootbox.confirm("Are you sure you want to cancel?", function(result) {
+    if (result) 
+      document.location = "/insurances";
+
+  }); 
+}
+
+function submitDetails() {
+  insurance_name = document.getElementById('insurance-name').value;
+  insurance_desc = document.getElementById('insurance-description').value;
+
+  if(stringIsEmpty(insurance_name)){
+    bootbox.alert("Please enter insurance name", function() {});
+    return/*
+  }else if(stringIsEmpty(insurance_coverage)){
+    bootbox.alert("Please enter insurance coverage: (0 - 100)", function() {});
+    return
+  }else if(isNumeric(insurance_coverage) == false){
+    bootbox.alert("Insurance coverage must be a number: 0 - 100", function() {});
+    return
+  }else if(insurance_coverage < 0 || insurance_coverage > 100){
+    bootbox.alert("Insurance coverage must be a number: 0% to 100%", function() {});
+    return*/
+  }
+
+  document.getElementById('account-attributes').submit();
+}
+
+function stringIsEmpty(value) {
+  return value ? value.trim().length == 0 : true;
+}
+
+function numberIsWhole(number) {
+  return Math.floor(number) == number;
+}
+
+function isNumeric(num){
+  return !isNaN(num)
+}
+
+</script>

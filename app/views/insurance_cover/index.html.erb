@@ -1,0 +1,167 @@
+
+<%=javascript_include_tag "DataTable/jquery" %>
+<%#=javascript_include_tag "DataTable/prototype" %>
+<script>jQuery.noConflict();</script>
+<%=javascript_include_tag "DataTable/jquery.dataTables.min" %>
+
+<%= stylesheet_link_tag "DataTable/demo_table_jui" %>
+<%= stylesheet_link_tag "DataTable/jquery.dataTables" %>
+
+<style>
+.dataTables_length {
+  text-align: left;
+}
+
+.centered{
+  border: 1px solid #eeeeee;
+  display: inline-block;
+  min-width: 60%;
+  padding: 20px;
+}
+
+.asset_search_div {
+  text-align: right;
+}
+
+.search-container {
+  padding-bottom: 50px !important;
+}
+
+#results tr:hover td {
+  background-color: lightblue;
+  color: white;
+  cursor: pointer;
+}
+
+.paginate_button current {
+  width: 100px;
+}
+
+.search-container input {
+  height: 40px;
+}
+
+#results td {
+  text-align: left;
+}
+
+#search_results_info {
+  text-align: left;
+}
+
+.page-head {
+  text-align: left;
+  padding-top: 30px;
+}
+
+.add-service {
+  background: #88af28 -moz-linear-gradient(center top , #a1d030, #88af28) repeat scroll 0 0;
+}
+
+.btn-group {
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+  float: right;
+}
+
+.edit-cover {
+  background-color: green;
+  padding: 1px 5px 1px 5px;
+}
+
+</style>
+<!--
+   get 'new_clinical_service_attribute/:clinical_services_id' => 'billing#new_clinical_service_attribute'
+     get 'new_clinical_service/:clinical_services_id' => 'billing#new_clinical_service' 
+  -->
+
+<div class="page-head">
+  <span>Availabele Health Insurances:</span>
+  <div class="btn-group">
+    <table>
+      <tr>
+        <td>
+          <button class="btn btn-success add-service" 
+          style="float: right; marging-right: 5px;" onclick="javascript:location='/company/0'">
+          <span class="glyphicon glyphicon-plus"></span> Add Insurance Co.</button>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<br />  
+<br />  
+<br />  
+
+<table id="search_results" class="table table-striped table-bordered table-condensed">
+<thead>
+<tr id = 'table_head'>
+  <th id="th4" style="width:20%;">Insurance</th>
+  <th id="th4" style="width:20%;">Description</th>
+  <th id="th4" style="width:30%;">Plan</th>
+  <th id="th4" style="width:10%;">&nbsp;</th>
+</tr>
+</thead>
+<tbody id='results'>
+  <%(@insurances || {}).each do |name, data|%>
+  <tr>
+    <td><%=name%></td>
+    <td><%=data[:insurance_description]%></td>
+    <td>
+      <ul>
+      <%(data[:plans] || {}).each do |plan|%>
+        <li>
+          <%=plan[:name]%>&nbsp;(<%=plan[:cover_percentage]%>%&nbsp;cover)&nbsp;
+          <a href="/edit_insurance_plan/<%=plan[:plan_id]%>" class=" edit-cover">Edit</a>
+        </li>
+      <%end%>
+      </ul>
+    </td>
+    <td style="text-align: center;">
+      <table style="width: 100%;">
+        <tr>
+          <td><a class="btn btn-warning" href="/company/<%=data[:insurance_id]%>">Edit</a></td>
+          <td><a class="btn btn-primary" href="/add_insurance_plan/<%=data[:insurance_id]%>">Add plan</a></td>
+        </tr>
+      </table>
+    </td> 
+  </tr>
+  <%end%>
+</tbody>
+</table>
+
+
+
+<script> 
+
+var dataTable = null;
+
+function dataT(){          
+  dataTable = jQuery('#search_results').dataTable();                                                  
+}
+
+                                                                     
+dataT();                   
+
+function cancelTransaction(code) {
+  bootbox.confirm("Are you sure you want to remove?", function(result) {
+    if (result) 
+      voidPrescription(code);
+    
+
+  });   
+}
+
+function deleteService(code) {
+  bootbox.confirm("Are you sure you want to delete?", function(result) {
+    if (result) 
+      document.location='/delete_clinical_service/'+code;
+    
+
+  });   
+}
+
+
+</script>
