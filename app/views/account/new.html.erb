@@ -41,6 +41,13 @@
   padding: 0px 100px 0px 100px;
 }
 
+.hidden-div {
+  visibility: hidden;
+}
+
+.insurance_covers_table {
+  width: 100%;
+}
 </style>
 
 <div style="text-align: left; padding: 0px 0px 15px 100px; color: black;">
@@ -86,7 +93,7 @@
       <%if @account.blank?%>
         <a class='btn btn-success new_account' href="javascript:submitDetails();">Update details</a>
       <%else%>
-        <a class='btn btn-success new_account' href="javascript:submitDetails();">Add insurance cover</a>
+        <a class='btn btn-success new_account' href="javascript:showInsuranceCovers();">Add insurance cover</a>
       <%end%>
     </td>
   </tr>
@@ -228,4 +235,125 @@ function getAccountNumber() {
   xmlhttp.send()
 }
 
+function showInsuranceCovers() {
+
+  bootbox.confirm("Available Insurance cover(s)", function(result) {
+    if (result) 
+      saveCover();
+
+  }); 
+/*
+  boot = document.getElementsByClassName('bootbox-body')[0]
+  boot.innerHTML += '<br /><br />';
+  boot.innerHTML += document.getElementsByClassName('hidden-div')[0].innerHTML;
+*/
+ buildInsuranceTable();
+}
+
+function buildInsuranceTable() {
+  table = document.createElement('table');
+  table.setAttribute('class', 'insurance_covers_table');        
+  
+  tr = document.createElement('tr');
+  th = document.createElement('th');
+  th.innerHTML = '<span style="color:red;">*</span>Select health insurer';
+  tr.appendChild(th);
+  
+  td = document.createElement('td');
+  select = document.createElement('select');
+  select.setAttribute('id', 'health_insurance');
+  select.setAttribute('onchange', 'getCovers();');      
+  option = document.createElement('option');
+  select.appendChild(option);
+  <%(HealthInsurance.all || []).each do |i|%>
+    option = document.createElement('option');
+    option.setAttribute('value', <%=i.id%>);
+    option.innerHTML = "<%=i.name%>";
+    select.appendChild(option);
+  <%end%>
+  td.appendChild(select);
+  tr.appendChild(td);
+  table.appendChild(tr);
+
+  /*........................................ */
+  tr = document.createElement('tr');
+  th = document.createElement('th');
+  th.innerHTML = '<span style="color:red;">*</span>Select insurance plan';
+  tr.appendChild(th);
+  
+  td = document.createElement('td');
+  select = document.createElement('select');
+  select.setAttribute('id', 'health_insurance_plans');
+  select.appendChild(option);
+  td.appendChild(select);
+  tr.appendChild(td);
+  table.appendChild(tr);
+
+  /*........................................ */
+  tr = document.createElement('tr');
+  th = document.createElement('th');
+  th.innerHTML = '<span style="color:red;">*</span>Insurance number';
+  tr.appendChild(th);
+
+  td = document.createElement('td');
+  input = document.createElement('input');
+  input.setAttribute('type','text');
+  input.setAttribute('id', 'insurance_number');
+  td.appendChild(input);
+  tr.appendChild(td);
+  table.appendChild(tr);
+
+  document.getElementsByClassName('bootbox-body')[0].appendChild(table);
+
+}
+
+function clearCovers() {
+  select = document.getElementById('health_insurance_plans');
+  options = select.getElementsByTagName('option');
+  if (options.length > 0) 
+    select.options.length = 0; 
+
+}
+
+function getCovers() {
+  
+  clearCovers();
+   
+  var insurance_id = document.getElementById('health_insurance').value;
+
+  if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+    xmlhttp=new XMLHttpRequest();                                             
+  }else{// code for IE6, IE5                                                  
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+  }                                                                           
+  xmlhttp.onreadystatechange=function() {                                     
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+      var results = xmlhttp.responseText;                                     
+      if(results == 'undefined' || results == '' || results == '"not validate"') {                           
+        return;                                                               
+      }else{                                           
+        covers = JSON.parse(results);     
+        c = document.getElementById('health_insurance_plans');
+        e = document.createElement('option');
+        c.appendChild(e)
+        for(var i = 0; i < covers.length; i++) { 
+          e = document.createElement('option');
+          e.setAttribute('value', covers[i][0]);
+          e.innerHTML =  covers[i][1];
+          c.appendChild(e)
+        }                 
+      }                                                                       
+    }                                                                         
+  } 
+                                                                
+  xmlhttp.open("GET","/fetch_insurance_covers/" + insurance_id, true);           
+  xmlhttp.send()
+}
+
+function saveCover() {
+  insurance_number = document.getElementById('insurance_number').value;
+  insurance_cover_id = document.getElementById('health_insurance_plans').value;
+  console.log(insurance_number);
+  console.log(insurance_cover_id);
+}
 </script>

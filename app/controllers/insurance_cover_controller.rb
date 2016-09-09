@@ -61,5 +61,14 @@ class InsuranceCoverController < ApplicationController
     @insurance_plan = HealthInsurancePlan.find(params[:insurance_plan_id]) 
   end
 
+  def fetch_insurance_covers
+    covers = HealthInsurancePlan.where(insurance_id: params[:insurance_id])
+    list = []
+    (covers || []).each do |c|
+      list << [c.id, c.name]
+    end
+
+    render text: list.to_json and return
+  end
   
 end
