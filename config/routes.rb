@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   get 'edit_insurance_plan/:insurance_plan_id' => 'insurance_cover#edit_insurance_plan'
   post '/edit_insurance_plan' => 'insurance_cover#edit_insurance_plan'
   get 'fetch_insurance_covers/:insurance_id' => 'insurance_cover#fetch_insurance_covers'
+  get 'add_insurance_covers/:insurance_plan_id/:account_id/:insurer_plan_identifier' => 'insurance_cover#add_insurance_covers'
   ###################################################################
 
   ################### hospital services ##############################

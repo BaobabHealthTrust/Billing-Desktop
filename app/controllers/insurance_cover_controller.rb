@@ -71,4 +71,20 @@ class InsuranceCoverController < ApplicationController
     render text: list.to_json and return
   end
   
+  def add_insurance_covers
+    cover = HealthInsurancePlan.find(params[:insurance_plan_id])
+    account = Account.find(params[:account_id])
+        
+    plan = AccountAttribute.where(insurer_plan_identifier: params[:insurer_plan_identifier])
+    
+    unless plan.blank?
+      render text: "Insurer plan:#{plan.first.insurer_plan_identifier} already exists".to_s and return
+    end
+      
+    AccountAttribute.create(account_id: account.id, insurance_plan_id: cover.id, 
+      insurer_plan_identifier: params[:insurer_plan_identifier])
+    
+    render text: 'Added'.to_s and return
+  end
+  
 end

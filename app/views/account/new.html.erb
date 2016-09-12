@@ -1,4 +1,8 @@
 
+<%=javascript_include_tag "DataTable/jquery" %>                          
+<script>jQuery.noConflict();</script>
+<%=javascript_include_tag "DataTable/jquery.dataTables.min" %>
+
 <style>
 .account-details {
   width: 99%;
@@ -48,11 +52,35 @@
 .insurance_covers_table {
   width: 100%;
 }
+
+.covers {
+  width: 100%;
+  text-align: left;
+}
+
+#added_covers_wrapper {
+  border-style: solid;
+  border-width: 1px 0;
+  margin-top: 50px;
+  padding-top: 15px;
+}
+
 </style>
 
 <div style="text-align: left; padding: 0px 0px 15px 100px; color: black;">
   <h3>Create/Update patient's billing account</h3>
 </div>
+
+<script>
+
+  var dataTable = null;
+
+  function dataT(){          
+    dataTable = jQuery('#added_covers');
+    dataTable.dataTable();                                                  
+  }
+
+</script>
 
 
 
@@ -98,8 +126,29 @@
     </td>
   </tr>
 
+</table>
 
-
+<table class="covers" id="added_covers">
+  <thead>
+  <tr>
+    <th>Insurer name:</th>
+    <th>Plan:</th>
+    <th>Cover percentage:</th>
+    <th>Plan number:</th>
+  </tr>
+  </thead>
+  <tbody>
+  <%(@account.account_attributes || []).each do |attribute|
+    (attribute.insurance_plans || []).each do |plan|%>
+      <tr>
+        <td><%= plan.health_insurer.name%></td>
+        <td><%= plan.name%></td>
+        <td><%= plan.cover_percentage%>%</td>
+        <td><%= attribute.insurer_plan_identifier%></td>
+      </tr>
+    <%end%>
+  <%end%>
+  </tbody>
 </table>
 
 <input type="hidden" name="patient_id" value="<%=params[:patient_id]%>" />
@@ -247,7 +296,8 @@ function showInsuranceCovers() {
   boot.innerHTML += '<br /><br />';
   boot.innerHTML += document.getElementsByClassName('hidden-div')[0].innerHTML;
 */
- buildInsuranceTable();
+  buildInsuranceTable();
+  clearCovers();
 }
 
 function buildInsuranceTable() {
@@ -353,7 +403,42 @@ function getCovers() {
 function saveCover() {
   insurance_number = document.getElementById('insurance_number').value;
   insurance_cover_id = document.getElementById('health_insurance_plans').value;
-  console.log(insurance_number);
-  console.log(insurance_cover_id);
+  
+  if (insurance_cover_id.length < 1) {
+    bootbox.alert('Please select health insurance plan ....');                                      
+    return;
+  }else if(stringIsEmpty(insurance_number)){
+    bootbox.alert('Please enter health insurer plan number/identifier ....');                                      
+    return;
+  }
+   
+  if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari  
+    xmlhttp=new XMLHttpRequest();                                             
+  }else{// code for IE6, IE5                                                  
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");                           
+  }                                                                           
+  xmlhttp.onreadystatechange=function() {                                     
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {                       
+      var results = xmlhttp.responseText;                                     
+      if(results == 'undefined' || results == '' || results == '"not validate"') {                           
+        return;                                                               
+      }else{    
+        if (results == 'Added') { 
+          bootbox.alert('Added successfully ....');                                      
+        }else if(results.match(/Insurer plan/i)){
+          bootbox.alert('Insurer plan:<span style="color:red;font-weight:bold;">'+ insurance_number +' </span>already exists ....');                                      
+        }
+      }                                                                       
+    }                                                                         
+  } 
+                                                                
+  xmlhttp.open("GET","/add_insurance_covers/" + insurance_cover_id + "/<%=@account.id%>/" + insurance_number, true);           
+  xmlhttp.send()
 }
+
+function stringIsEmpty(value) {
+  return value ? value.trim().length == 0 : true;
+}
+
+dataT();
 </script>

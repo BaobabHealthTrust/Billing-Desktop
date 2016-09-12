@@ -4,6 +4,6 @@ class HealthInsurancePlan < ActiveRecord::Base
 
   default_scope { where(voided: 0) }
 
-  belongs_to :health_insurance, class_name: "HealthInsurance", foreign_key: "insurance_id"
+  belongs_to :health_insurer, class_name: "HealthInsurance", foreign_key: "insurance_id"
 
 end
