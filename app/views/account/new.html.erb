@@ -147,7 +147,7 @@
         <td><%= attribute.insurer_plan_identifier%></td>
       </tr>
     <%end%>
-  <%end%>
+  <%end unless @account.blank?%>
   </tbody>
 </table>
 
@@ -432,7 +432,7 @@ function saveCover() {
     }                                                                         
   } 
                                                                 
-  xmlhttp.open("GET","/add_insurance_covers/" + insurance_cover_id + "/<%=@account.id%>/" + insurance_number, true);           
+  xmlhttp.open("GET","/add_insurance_covers/" + insurance_cover_id + "/<%=@account.id rescue nil %>/" + insurance_number, true);           
   xmlhttp.send()
 }
 
