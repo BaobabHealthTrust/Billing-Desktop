@@ -3,6 +3,8 @@
 <script>jQuery.noConflict();</script>
 <%=javascript_include_tag "DataTable/jquery.dataTables.min" %>
 
+<%= stylesheet_link_tag "DataTable/jquery.dataTables" %>  
+
 <style>
 .account-details {
   width: 99%;
@@ -128,27 +130,27 @@
 
 </table>
 
-<table class="covers" id="added_covers">
-  <thead>
-  <tr>
-    <th>Insurer name:</th>
-    <th>Plan:</th>
-    <th>Cover percentage:</th>
-    <th>Plan number:</th>
-  </tr>
-  </thead>
-  <tbody>
-  <%(@account.account_attributes || []).each do |attribute|
-    (attribute.insurance_plans || []).each do |plan|%>
-      <tr>
-        <td><%= plan.health_insurer.name%></td>
-        <td><%= plan.name%></td>
-        <td><%= plan.cover_percentage%>%</td>
-        <td><%= attribute.insurer_plan_identifier%></td>
-      </tr>
-    <%end%>
-  <%end unless @account.blank?%>
-  </tbody>
+<table class="covers table table-striped table-bordered table-condensed" id="added_covers">
+    <thead>
+        <tr>
+          <th>Insurer name:</th>
+          <th>Plan:</th>
+          <th>Cover percentage:</th>
+          <th>Plan number:</th>
+        </tr>
+    </thead>
+    <tbody>
+        <%  (@account.account_attributes || []).each do |attribute|
+                (attribute.insurance_plans || []).each do |plan| %>
+                    <tr>
+                        <td><%= plan.health_insurer.name%></td>
+                        <td><%= plan.name%></td>
+                        <td><%= plan.cover_percentage%>%</td>
+                        <td><%= attribute.insurer_plan_identifier%></td>
+                    </tr>
+                <%end%>
+        <%  end unless @account.blank? %>
+    </tbody>
 </table>
 
 <input type="hidden" name="patient_id" value="<%=params[:patient_id]%>" />
